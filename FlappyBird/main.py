@@ -281,6 +281,10 @@ def eval_genomes(genomes, config):
     # just get the global fps to change it later
     global fps
 
+    # Just to start the program when user hits enter (or anything)
+    if env.generation == 0:
+        input("Press enter to start: ")
+
     # this is something special to just add the members in the population
     # and this tends to give the population size given in the config file
     for genome_id, genome in genomes:
