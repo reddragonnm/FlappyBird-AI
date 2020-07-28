@@ -226,9 +226,10 @@ class GameEnv:
         pipe = self.pipes[-1]
 
         # if draw_lines is True then just show "what the bird sees"
+        width = pipe.image_top.get_width()
         if draw_lines:
-            pg.draw.line(screen, RED, (bird.x, bird.y), (pipe.x, pipe.y), 3)
-            pg.draw.line(screen, GREEN, (bird.x, bird.y), (pipe.x, pipe.y + pipe.gap), 3)
+            pg.draw.line(screen, RED, (bird.x, bird.y), (pipe.x + width, pipe.y), 3)
+            pg.draw.line(screen, GREEN, (bird.x, bird.y), (pipe.x + width, pipe.y + pipe.gap), 3)
 
         # and finally return the information
         return (
@@ -241,8 +242,6 @@ class GameEnv:
     def move_birds(self):
         # moving the birds according to their brains or the NEAT net
         for bird in self.birds:
-            # display the bird
-            bird["bird_obj"].display()
             # For more distance keep adding the fitness (i.e. more distance -> more fitness)
             bird["genome"].fitness += 1
 

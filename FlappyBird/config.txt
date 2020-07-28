@@ -13,7 +13,7 @@ activation_options      = sigmoid
 # network parameters
 num_hidden              = 0
 num_inputs              = 4
-num_outputs             = 1
+num_outputs             = 2
 
 ############### TO USE THIS FILE AS A TEMPLATE JUST CHANGE TILL HERE ################
 
