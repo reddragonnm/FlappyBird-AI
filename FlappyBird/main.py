@@ -366,7 +366,5 @@ I think, by the time you read this there will be more examples in this github re
 provided you find this in it. So I encourage you to view more of my examples and
 polish your skills
 
-Thank You,
-Neelesh Mishra
-(Thst is my original name and I live in India)
+Thank You
 '''
