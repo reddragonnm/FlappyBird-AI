@@ -351,7 +351,7 @@ def main():
     # hey population, here is the main eval_genomes functions and here is the number of generations I want you to run this for
     # But if any bird's fitness exceeds the fitness_threshold (in config file) then it will automatically stop the program (when the bird collides without running it for all generations)
     winner = p.run(eval_genomes, 5000)
-    print('\nBest genome:\n{!s}'.format(winner))
+    print(f"Best genome:\n {winner}")
 
 # and this is just calling the main function
 if __name__ == '__main__':
