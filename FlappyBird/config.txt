@@ -6,9 +6,16 @@ reset_on_extinction   = False
 
 [DefaultGenome]
 # node activation options
-activation_default      = tanh
+activation_default      = sigmoid
 activation_mutate_rate  = 0.0
-activation_options      = tanh
+activation_options      = sigmoid
+
+# network parameters
+num_hidden              = 0
+num_inputs              = 4
+num_outputs             = 1
+
+############### TO USE THIS FILE AS A TEMPLATE JUST CHANGE TILL HERE ################
 
 # node aggregation options
 aggregation_default     = sum
@@ -42,11 +49,6 @@ initial_connection      = full
 # node add/remove rates
 node_add_prob           = 0.2
 node_delete_prob        = 0.2
-
-# network parameters
-num_hidden              = 0
-num_inputs              = 4
-num_outputs             = 1
 
 # node response options
 response_init_mean      = 1.0
