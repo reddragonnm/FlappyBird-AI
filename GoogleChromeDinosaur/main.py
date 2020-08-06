@@ -75,12 +75,16 @@ class Dino:
         self.time_stamp += 1
 
     def jump(self):
-        if self.y == screen_height - 150:
-            self.grav = 1
+        while True:
+            if self.y != screen_height - 150:
+                self.vel = -5
+                break
+
             self.y += self.vel
-            self.vel += self.grav
-        else:
-            self.grav = 0
+            self.vel += self.gravity
+
+            self.display()
+            pg.display.update()
 
 
 class Cactus:
@@ -105,8 +109,11 @@ while True:
     screen.fill(WHITE)
 
     dino.display()
-    dino.jump()
     bg.display()
+
+    for event in pg.event.get():
+        if event.type == pg.MOUSEBUTTONDOWN:
+            dino.jump()
 
     pg.display.update()
     fps_clock.tick(fps)
