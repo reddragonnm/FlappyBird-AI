@@ -7,7 +7,7 @@ But you can use this project's config file as a template if you want to start as
 2. And change the details according to your project's requirements in ONLY THE FIRST 3 BLOCKS
 
 The first 3 blocks are marked in the config file in case you fail to find it.
-And fitness_threshold is the maximum fitness that you want
+And fitness_threshold is the maximum/optimum fitness that you want
 '''
 
 # importing all modules

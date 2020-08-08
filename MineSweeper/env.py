@@ -1,16 +1,21 @@
 import pygame as pg
 import neat
 import random
+import time
 
 pg.init()
 
-grid_size = 10
-bombs = 10
-block_size = 50
-margin = 20 
+grid_size = 25
+bombs = 100
+block_size = 15
+margin = 20
 
-def map_values(n, start1, stop1, start2, stop2):
-    return ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2
+fps = 20
+fps_clock = pg.time.Clock()
+
+is_bomb_color = 0, 0, 0
+not_bomb_color = 0, 255, 255
+not_revealed_color = 255, 255, 0
 
 '''
     0 - empty
@@ -19,23 +24,18 @@ def map_values(n, start1, stop1, start2, stop2):
     10 - not revealed
 '''
 
-side = (block_size * grid_size) + (2 * margin)
-screen = pg.display.set_mode((side, side))
-
-font = pg.font.Font('freesansbold.ttf', 32)
-
 class Tile:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+
+        self.color = [random.randint(0, 255) for _ in range(3)]
 
         self.is_bomb = False
         self.revealed = False
 
         self.val = 0
         self.adj_tiles = []
-
-        self.rect = None
 
     def make_bomb(self):
         self.is_bomb = True
@@ -64,16 +64,16 @@ class Tile:
 
         for index in indexes:
             try:
-                if index[0] >= 0 and index[1] >= 0: 
-                    tile = board[index[0]][index[1]]                    
+                if index[0] >= 0 and index[1] >= 0:
+                    tile = board[index[0]][index[1]]
 
                     if tile.is_bomb:
                         self.val += 1
                     else:
                         self.adj_tiles.append(tile)
-                        
+
             except IndexError:
-                pass        
+                pass
 
     def get_value(self):
         if self.revealed:
@@ -81,58 +81,56 @@ class Tile:
         else:
             return 10
 
-    def display(self):
+    def display(self, screen):
         x = margin + (self.x * block_size)
         y = margin + (self.y * block_size)
 
         if not self.revealed:
-            color = (255, 255, 0)
+            color = not_revealed_color
         else:
             if not self.is_bomb:
-                color = (0, 255, 255)
+                color = not_bomb_color
             else:
-                color = (0, 0, 0)        
+                color = is_bomb_color
 
-        self.rect = pg.draw.rect(screen, color, (x, y, block_size, block_size))
+        pg.draw.rect(screen, color, (x, y, block_size, block_size))
         pg.draw.rect(screen, (255, 0, 0), (x, y, block_size, block_size), 2)
 
-        if self.revealed and self.val != 0:
-            screen.blit(font.render(f"{self.get_value()}", True, (255, 255, 255)), (x + block_size // 3, y + block_size // 3))
+        # if self.revealed and self.val != 0:
+        #     screen.blit(font.render(f"{self.get_value()}", True, self.color, (x + block_size // 3, y + block_size // 3)))
 
-    def all_empty(self, lst):
-        n = 0
-        for l in lst:
-            if l.val == 0:
-                n += 1
+    def filter_lst(self, lst):
+        filtered = []
 
-        return n == len(lst)
+        for tile in lst:
+            if not tile.revealed:
+                filtered.append(tile)
+
+        return filtered
 
     def reveal_adjacent(self):
-        self.revealed = True
-
         tiles = [self]
-        # tiles = self.adj_tiles
 
         while True:
             new_tiles = []
 
             for tile in tiles:
-                for adj in tile.adj_tiles:
+                for adj in self.filter_lst(tile.adj_tiles):
                     adj.revealed = True
-                    pg.display.update()
+
+                    if adj.val == 0:
+                        new_tiles.append(adj)
 
             tiles = new_tiles
 
             if tiles == []:
-                break  
+                break
 
 
-    def check_click(self, mouse_x, mouse_y):
-        if self.rect.collidepoint(mouse_x, mouse_y):
-            if not self.val != 0:
-                self.reveal_adjacent()
-            else:
-                self.revealed = True
+    def click(self):
+        self.revealed = True
+        if self.val == 0:
+            self.reveal_adjacent()
 
 class Board:
     def __init__(self):
@@ -159,29 +157,149 @@ class Board:
         for all_tile in self.board_flat:
             all_tile.get_adjacent_bombs(self.board)
 
-    def display(self):
+        print(len(self.board_flat))
+
+    def display(self, screen):
         for tile in self.board_flat:
-            tile.display()
+            tile.display(screen)
 
-    def check_click(self, pos):
-        mouse_x, mouse_y = pos
+    def click(self, index):
+        tile = self.board_flat[index % grid_size ** 2]
+        tile.click()
+
+        if tile.is_bomb:
+            return -10, True
+        else:
+            if not tile.revealed:
+                return 3, False
+            else:
+                return -5, True
+
+    def get_board_info(self):
+        lst = []
+
         for tile in self.board_flat:
-            tile.check_click(mouse_x, mouse_y)
+            lst.append(tile.get_value())
 
-board = Board()
+        return lst
 
-while True:
-    board.display()
+class Player:
+    def __init__(self, genome, config, board):
+        self.board = board
+        self.net = neat.nn.FeedForwardNetwork.create(genome, config)
 
-    for event in pg.event.get():
-        if event.type == pg.QUIT:
-            pg.quit()
-            quit()
+        genome.fitness = 0
+        self.genome = genome
 
-        if event.type == pg.MOUSEBUTTONDOWN:
-            board.check_click(pg.mouse.get_pos())
+        self.dead = False
 
-    pg.display.update()
+    def think(self):
+        output = self.net.activate(self.board.get_board_info())
+        print(output)
+        # output = int(output[0] * grid_size ** 2) - 1
+        output = int((output[0] * grid_size ** 2)  / 100) - 1
 
+        # print("click", output, self.genome.fitness)
+        reward, self.dead = self.board.click(output)
+        self.genome.fitness += reward
 
+    def map_values(self, n, start1, stop1, start2, stop2):
+        return int(((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2)
 
+    def display(self, screen):
+        self.board.display(screen)
+
+class Env:
+    def __init__(self):
+        self.players = []
+        self.board = Board()
+
+        self.score = 0
+        self.generation = 0
+
+    def add_player(self, genome, config):
+        self.players.append(Player(genome, config, self.board))
+
+    def display_one(self, screen):
+        try:
+            player = self.players[0]
+            player.display(screen)
+        except IndexError:
+            pass
+
+    def check_removal(self):
+        to_remove = []
+
+        for player in self.players:
+            if player.dead:
+                to_remove.append(player)
+
+        for rem in to_remove:
+            self.players.remove(rem)
+
+    def reset(self):
+        self.players = []
+        self.board = Board()
+
+        self.score = 0
+        self.generation = 0
+
+    def all_dead(self):
+        # print("Check all dead", len(self.players) == 0)
+        return len(self.players) == 0
+
+    def think_all(self):
+        for player in self.players:
+            player.think()
+
+env = Env()
+
+side = (block_size * grid_size) + (2 * margin)
+screen = pg.display.set_mode((side, side))
+
+font = pg.font.Font('freesansbold.ttf', 32)
+
+def eval_genomes(genomes, config):
+
+    for genome_id, genome in genomes:
+        env.add_player(genome, config)
+
+    while True:
+        screen.fill((0, 0, 255))
+
+        # print("Hello")
+        env.check_removal()
+        env.display_one(screen)
+        env.think_all()
+
+        if env.all_dead():
+            env.reset()
+            break
+
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                pg.quit()
+                quit()
+
+        pg.display.update()
+        fps_clock.tick(fps)
+
+def main():
+    config_file = "config.txt"
+
+    config = neat.config.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation,
+                         config_file)
+
+    p = neat.Population(config)
+
+    p.add_reporter(neat.StdOutReporter(True))
+    p.add_reporter(neat.StatisticsReporter())
+
+    winner = p.run(eval_genomes, 5000)
+    print(f"Best genome:\n {winner}")
+
+if __name__ == "__main__":
+    main()
+
+pg.quit()

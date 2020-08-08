@@ -1,18 +1,18 @@
 [NEAT]
 fitness_criterion     = max
-fitness_threshold     = 10000
-pop_size              = 500
+fitness_threshold     = 525
+pop_size              = 50
 reset_on_extinction   = False
 
 [DefaultGenome]
 # node activation options
-activation_default      = sigmoid
+activation_default      = relu
 activation_mutate_rate  = 0.0
-activation_options      = sigmoid
+activation_options      = relu
 
 # network parameters
 num_hidden              = 0
-num_inputs              = 4
+num_inputs              = 625
 num_outputs             = 1
 
 ############### TO USE THIS FILE AS A TEMPLATE JUST CHANGE TILL HERE ################
