@@ -360,10 +360,6 @@ if __name__ == '__main__':
 pg.quit()
 
 '''
-I hope you learnt many new things in this example.
-I think, by the time you read this there will be more examples in this github repo,
-provided you find this in it. So I encourage you to view more of my examples and
-polish your skills
-
+THE END
 Thank You
 '''
