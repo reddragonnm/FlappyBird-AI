@@ -249,7 +249,7 @@ class GameEnv:
             output = bird["net"].activate(self.get_info(bird["bird_obj"]))
 
             # if output is greater than 0.5 then jump
-            # we are using sigmoid activation with value ranging from 0 to 1 so if probability is greater than 50% then jump
+            # we are using sigmoid activation with val ranging from 0 to 1 so if probability is greater than 50% then jump
             if output[0] > 0.5:
                 bird["bird_obj"].jump()
 
