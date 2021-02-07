@@ -5,6 +5,7 @@ from pygame.color import THECOLORS as colors
 from neatpy.population import Population
 from neatpy.options import Options
 from neatpy.draw import draw_brain_pygame
+from neatpy.save import save_brain
 
 pg.init()
 pg.font.init()
@@ -39,13 +40,29 @@ class Ground:
             screen.blit(Ground.img, (Ground.grounds[i], height - 100))
             Ground.grounds[i] -= speed
 
+class Bg:
+    img = load_image('bg', width, height - 100)
+    bgs = [0]
+
+    @staticmethod
+    def show(speed):
+        if Bg.bgs[-1] <= 0:
+            Bg.bgs.append(Bg.bgs[-1] + width)
+
+        if Bg.bgs[0] < -width:
+            Bg.bgs = Bg.bgs[1:]
+
+        for i in range(len(Bg.bgs)):
+            screen.blit(Bg.img, (int(Bg.bgs[i]), 0))
+            Bg.bgs[i] -= speed
+
 class Pipe:
     def __init__(self):
         self.dim = 100, 800
         self.pipet = load_image('pipet', *self.dim)
         self.pipeb = load_image('pipeb', *self.dim)
 
-        self.gap = 200
+        self.gap = 175
 
         self.x = width
         self.y = random.randrange(height - 100 - self.gap)
@@ -91,10 +108,10 @@ class Bird:
         self.y += self.y_vel
         self.y_vel += self.g
 
-        self.rotation = max(-self.y_vel * 2, -80)
+        self.rotation = max(-self.y_vel * 4, -80)
 
     def jump(self):
-        self.y_vel = -20
+        self.y_vel = -15
 
     def think(self, pipe):
         inputs = [
@@ -116,11 +133,10 @@ class Bird:
             self.y < 0
         )
 
-bg = load_image('bg', width, height - 100)
 pipes = [Pipe()]
 font = pg.font.Font('freesansbold.ttf', 32)
 
-Options.set_options(5, 1, 500, 10000000)
+Options.set_options(5, 1, 500)
 p = Population()
 gen = 1
 score = 0
@@ -135,7 +151,7 @@ def get_cur_pipe():
 while running:
     screen.fill(colors['black'])
 
-    screen.blit(bg, (0, 0))
+    Bg.show(speed/10)
     for pipe in pipes:
         pipe.show()
 
@@ -171,6 +187,7 @@ while running:
 
     for event in pg.event.get():
         if event.type == pg.QUIT:
+            save_brain(p.best, 'bird.json')
             running = False
 
         if event.type == pg.KEYDOWN:
